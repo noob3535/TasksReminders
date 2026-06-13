@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Accountability-focused task tracker with reminders, notification tracking, escalation, and reporting."
+    />
+    <meta name="theme-color" content="#22342d" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="TaskPulse" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <title>Task Tracker and Reminders</title>
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="icon" href="./icons/icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="./icons/icon.svg" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="Primary">
+        <div class="brand">
+          <span class="brand-mark" aria-hidden="true">T</span>
+          <div>
+            <strong>TaskPulse</strong>
+            <span>Reminder accountability</span>
+          </div>
+        </div>
+
+        <nav class="nav-list" aria-label="Views">
+          <button class="nav-item active" data-view="home" type="button">
+            <span aria-hidden="true">H</span>
+            <span>Home</span>
+          </button>
+          <button class="nav-item" data-view="today" type="button">
+            <span aria-hidden="true">T</span>
+            <span>Today</span>
+          </button>
+          <button class="nav-item" data-view="upcoming" type="button">
+            <span aria-hidden="true">U</span>
+            <span>Upcoming</span>
+          </button>
+          <button class="nav-item" data-view="overdue" type="button">
+            <span aria-hidden="true">!</span>
+            <span>Overdue</span>
+          </button>
+          <button class="nav-item" data-view="calendar" type="button">
+            <span aria-hidden="true">C</span>
+            <span>Calendar</span>
+          </button>
+          <button class="nav-item" data-view="projects" type="button">
+            <span aria-hidden="true">P</span>
+            <span>Projects</span>
+          </button>
+          <button class="nav-item" data-view="notifications" type="button">
+            <span aria-hidden="true">N</span>
+            <span>Notifications</span>
+          </button>
+          <button class="nav-item" data-view="reports" type="button">
+            <span aria-hidden="true">R</span>
+            <span>Reports</span>
+          </button>
+          <button class="nav-item" data-view="settings" type="button">
+            <span aria-hidden="true">S</span>
+            <span>Settings</span>
+          </button>
+        </nav>
+      </aside>
+
+      <main class="main-panel">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">Workspace: Operations</p>
+            <h1 id="viewTitle">Home</h1>
+          </div>
+          <div class="topbar-actions">
+            <button class="secondary-button install-button" id="installButton" type="button">
+              Install App
+            </button>
+            <button class="icon-button" id="simulateReminderButton" type="button" title="Simulate reminder">
+              N
+            </button>
+            <button class="primary-button" id="quickAddButton" type="button">
+              <span aria-hidden="true">+</span>
+              <span>New Task</span>
+            </button>
+          </div>
+        </header>
+
+        <section class="quick-capture" aria-labelledby="captureTitle">
+          <div>
+            <h2 id="captureTitle">Quick Capture</h2>
+            <p>Type naturally: "Send report tomorrow at 9 AM high priority #finance".</p>
+          </div>
+          <form id="quickAddForm" class="capture-form">
+            <label class="sr-only" for="quickInput">Task entry</label>
+            <input
+              id="quickInput"
+              name="quickInput"
+              autocomplete="off"
+              placeholder="What needs to get done?"
+              required
+            />
+            <button class="primary-button" type="submit">Add</button>
+          </form>
+        </section>
+
+        <section class="metrics-grid" aria-label="Task performance metrics">
+          <article class="metric-tile">
+            <span>Open Tasks</span>
+            <strong id="metricOpen">0</strong>
+          </article>
+          <article class="metric-tile">
+            <span>Due Today</span>
+            <strong id="metricToday">0</strong>
+          </article>
+          <article class="metric-tile danger">
+            <span>Overdue</span>
+            <strong id="metricOverdue">0</strong>
+          </article>
+          <article class="metric-tile">
+            <span>Ack Rate</span>
+            <strong id="metricAck">0%</strong>
+          </article>
+        </section>
+
+        <div class="content-layout">
+          <section class="task-region" aria-labelledby="taskListTitle">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow" id="viewContext">Actionable work</p>
+                <h2 id="taskListTitle">Tasks</h2>
+              </div>
+              <div class="filter-row" aria-label="Task filters">
+                <button class="chip active" data-filter="all" type="button">All</button>
+                <button class="chip" data-filter="high" type="button">High</button>
+                <button class="chip" data-filter="blocked" type="button">Blocked</button>
+                <button class="chip" data-filter="unacknowledged" type="button">Unack</button>
+              </div>
+            </div>
+            <div class="task-list" id="taskList"></div>
+          </section>
+
+          <aside class="detail-panel" aria-labelledby="detailTitle">
+            <div id="emptyDetail" class="empty-state">
+              <h2 id="detailTitle">Select a task</h2>
+              <p>Review owner, reminder delivery, snooze history, escalation, and completion evidence.</p>
+            </div>
+            <div id="taskDetail" class="task-detail hidden"></div>
+          </aside>
+        </div>
+      </main>
+    </div>
+
+    <dialog id="taskDialog">
+      <form id="taskForm" method="dialog" class="dialog-card">
+        <div class="dialog-heading">
+          <div>
+            <p class="eyebrow">Task setup</p>
+            <h2 id="dialogTitle">Create Task</h2>
+          </div>
+          <button class="icon-button" value="cancel" type="button" id="closeDialogButton" title="Close">x</button>
+        </div>
+
+        <div class="form-grid">
+          <label>
+            Title
+            <input id="taskTitle" name="title" required />
+          </label>
+          <label>
+            Owner
+            <select id="taskOwner" name="owner"></select>
+          </label>
+          <label>
+            Project
+            <select id="taskProject" name="project"></select>
+          </label>
+          <label>
+            Priority
+            <select id="taskPriority" name="priority">
+              <option>Low</option>
+              <option selected>Normal</option>
+              <option>High</option>
+              <option>Emergency</option>
+            </select>
+          </label>
+          <label>
+            Due date
+            <input id="taskDueDate" name="dueDate" type="date" />
+          </label>
+          <label>
+            Due time
+            <input id="taskDueTime" name="dueTime" type="time" />
+          </label>
+          <label>
+            Status
+            <select id="taskStatus" name="status">
+              <option>Not started</option>
+              <option>In progress</option>
+              <option>Waiting</option>
+              <option>Blocked</option>
+              <option>Completed</option>
+              <option>Canceled</option>
+            </select>
+          </label>
+          <label>
+            Reminder plan
+            <select id="taskReminder" name="reminder">
+              <option>Push 1 hour before, email at due time</option>
+              <option>Push 24 hours before, push 1 hour before, email at due time</option>
+              <option>Digest only</option>
+              <option>Repeated until acknowledged</option>
+              <option>Repeated until completed</option>
+            </select>
+          </label>
+          <label class="wide">
+            Description
+            <textarea id="taskDescription" name="description" rows="3"></textarea>
+          </label>
+          <label class="wide">
+            Completion requirements
+            <textarea id="taskEvidence" name="evidence" rows="2" placeholder="Notes, file upload, approval, photo, signature..."></textarea>
+          </label>
+        </div>
+
+        <div class="dialog-actions">
+          <button class="secondary-button" value="cancel" type="button" id="cancelDialogButton">Cancel</button>
+          <button class="primary-button" value="default" type="submit">Save Task</button>
+        </div>
+      </form>
+    </dialog>
+
+    <template id="taskTemplate">
+      <article class="task-card">
+        <button class="task-main" type="button">
+          <span class="status-dot" aria-hidden="true"></span>
+          <span>
+            <strong class="task-title"></strong>
+            <small class="task-meta"></small>
+          </span>
+        </button>
+        <div class="task-badges"></div>
+        <div class="task-actions">
+          <button type="button" data-action="ack">Ack</button>
+          <button type="button" data-action="snooze">Snooze</button>
+          <button type="button" data-action="complete">Done</button>
+        </div>
+      </article>
+    </template>
+
+    <script src="./app.js" defer></script>
+  </body>
+</html>

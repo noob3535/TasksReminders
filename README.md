@@ -1,2 +1,38 @@
-# TasksReminders
-Mobile-installable task and reminder accountability PWA.
+# Task Tracker and Reminders
+
+A dependency-free responsive web app built from the Word specification in `Task Management Application.docx`.
+
+## What is included
+
+- Quick task capture with simple natural-language parsing.
+- Mobile-installable Progressive Web App metadata.
+- Offline app shell caching through a service worker.
+- Task views for Home, Today, Upcoming, Overdue, Calendar, Projects, Notifications, Reports, and Settings.
+- Task detail panel with owner, priority, due date, reminder plan, snooze count, acknowledgment status, escalation status, completion requirements, and notification history.
+- Push/email reminder simulation and notification event logging.
+- One-click acknowledge, snooze, and complete actions.
+- Basic accountability metrics: open tasks, due today, overdue tasks, and acknowledgment rate.
+- Local persistence through `localStorage`.
+
+## Run
+
+Open `index.html` directly in a browser, or serve the folder locally:
+
+```powershell
+node server.js
+```
+
+Then visit `http://localhost:4173`.
+
+## Install on mobile
+
+Run the app from the local server, then install it from your mobile browser:
+
+- Android Chrome: open the app URL, tap `Install App` or use the browser menu and choose `Install app`.
+- iPhone Safari: open the app URL, tap Share, then choose `Add to Home Screen`.
+
+For install prompts and offline caching, use `http://localhost:4173` while testing on this computer. For installation on a real phone, deploy the folder to an HTTPS host, then open that HTTPS URL on the phone. Browsers generally do not allow service-worker installation from an insecure LAN URL.
+
+## Notes
+
+This is an MVP front-end prototype. Production back-end services from the spec, such as authentication, relational persistence, background jobs, email providers, push providers, retry workers, calendar sync, webhooks, and audit logging, are represented in the UI and data model but would need server implementation for deployment.

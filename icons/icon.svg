@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">TaskPulse icon</title>
+  <desc id="desc">A task reminder icon with a check mark and notification pulse.</desc>
+  <rect width="512" height="512" rx="104" fill="#22342d"/>
+  <circle cx="256" cy="256" r="158" fill="#f7f8f5"/>
+  <path d="M176 264l52 52 114-132" fill="none" stroke="#0f766e" stroke-width="42" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M360 258c0-58-47-105-105-105" fill="none" stroke="#f0b35a" stroke-width="28" stroke-linecap="round"/>
+  <circle cx="369" cy="274" r="24" fill="#c7503f"/>
+</svg>
