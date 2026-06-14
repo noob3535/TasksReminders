@@ -24,24 +24,24 @@
 
 body[data-theme="dark"] {
   color-scheme: dark;
-  --bg: #1f1410;
-  --panel: #2b1b16;
-  --panel-soft: #3a251d;
-  --ink: #fff4ca;
-  --muted: #d2b899;
-  --line: #5a382b;
-  --maroon: #d46a76;
-  --maroon-dark: #f0939d;
-  --brown: #c89462;
-  --brown-dark: #f0c083;
-  --yellow: #4c321d;
-  --yellow-strong: #d8a849;
-  --alert-soft: #4b211c;
-  --blocked-soft: #4a351c;
-  --ack-soft: #2c3b1f;
-  --coral: #ff9187;
-  --amber: #efbd6c;
-  --green: #9dbd6b;
+  --bg: #1d100b;
+  --panel: #2a1710;
+  --panel-soft: #3b2117;
+  --ink: #fff2b8;
+  --muted: #d8bd86;
+  --line: #6b4128;
+  --maroon: #6f1421;
+  --maroon-dark: #3f0811;
+  --brown: #9b6738;
+  --brown-dark: #5d351d;
+  --yellow: #f8e7a1;
+  --yellow-strong: #d9aa3a;
+  --alert-soft: #4a1714;
+  --blocked-soft: #4f3516;
+  --ack-soft: #2d3d1d;
+  --coral: #d15648;
+  --amber: #d19a3a;
+  --green: #93aa52;
   --shadow: 0 18px 50px rgba(0, 0, 0, 0.34);
 }
 
@@ -88,7 +88,7 @@ button {
 
 .sidebar {
   background: var(--maroon-dark);
-  color: #fff9db;
+  color: var(--yellow);
   padding: 24px 18px;
   display: flex;
   flex-direction: column;
@@ -120,7 +120,7 @@ button {
 }
 
 .brand span {
-  color: #f7d49a;
+  color: var(--muted);
   font-size: 0.82rem;
 }
 
@@ -137,15 +137,15 @@ button {
   border: 0;
   border-radius: var(--radius);
   background: transparent;
-  color: #dfe8e2;
+  color: var(--yellow);
   padding: 10px 12px;
   text-align: left;
 }
 
 .nav-item:hover,
 .nav-item.active {
-  background: rgba(255, 255, 255, 0.12);
-  color: #ffffff;
+  background: color-mix(in srgb, var(--yellow) 16%, transparent);
+  color: var(--yellow);
 }
 
 .main-panel {
@@ -222,7 +222,7 @@ h2 {
   gap: 8px;
   border-color: var(--maroon);
   background: var(--maroon);
-  color: #ffffff;
+  color: var(--yellow);
   padding: 0 16px;
   font-weight: 750;
 }
@@ -241,7 +241,7 @@ h2 {
 }
 
 .danger-button {
-  border-color: #f1b8ae;
+  border-color: var(--coral);
   color: var(--coral);
   padding: 0 14px;
   font-weight: 750;
@@ -569,7 +569,7 @@ textarea {
   height: 24px;
   border-radius: 999px;
   background: var(--maroon);
-  color: #ffffff;
+  color: var(--yellow);
   font-size: 0.78rem;
 }
 
@@ -829,7 +829,7 @@ label {
   background: var(--maroon-dark);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
-  color: #ffffff;
+  color: var(--yellow);
   padding: 12px;
 }
 
