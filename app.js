@@ -23,6 +23,19 @@ const seedState = {
   statusFilter: "all",
   sortMode: "smart",
   lastDeletedTask: null,
+  profile: {
+    name: "Local Profile",
+    email: "",
+    deviceId: `device-${Math.random().toString(36).slice(2, 10)}`,
+    lastBackupAt: "",
+    lastImportedAt: "",
+    lastSavedAt: ""
+  },
+  reminderRuntime: {
+    enabled: false,
+    lastCheckedAt: "",
+    deliveredReminderIds: []
+  },
   users: ["Maya Chen", "Alonso Ruiz", "Fernando Silva", "Jordan Lee"],
   projects: ["Operations", "Finance", "Client Success", "Compliance"],
   notificationPrefs: {
@@ -160,7 +173,17 @@ const els = {
   planTodayButton: document.querySelector("#planTodayButton"),
   toast: document.querySelector("#toast"),
   toastMessage: document.querySelector("#toastMessage"),
-  toastUndoButton: document.querySelector("#toastUndoButton")
+  toastUndoButton: document.querySelector("#toastUndoButton"),
+  profileName: document.querySelector("#profileName"),
+  profileMeta: document.querySelector("#profileMeta"),
+  notificationStatus: document.querySelector("#notificationStatus"),
+  nextReminder: document.querySelector("#nextReminder"),
+  backupStatus: document.querySelector("#backupStatus"),
+  syncStatus: document.querySelector("#syncStatus"),
+  enableNotificationsButton: document.querySelector("#enableNotificationsButton"),
+  exportDataButton: document.querySelector("#exportDataButton"),
+  importDataButton: document.querySelector("#importDataButton"),
+  importDataInput: document.querySelector("#importDataInput")
 };
 
 let deferredInstallPrompt = null;
@@ -178,13 +201,23 @@ function loadState() {
   const saved = localStorage.getItem(STORAGE_KEY);
   if (!saved) return structuredClone(seedState);
   try {
-    return { ...structuredClone(seedState), ...JSON.parse(saved) };
+    const parsed = JSON.parse(saved);
+    return {
+      ...structuredClone(seedState),
+      ...parsed,
+      profile: { ...structuredClone(seedState.profile), ...(parsed.profile || {}) },
+      reminderRuntime: {
+        ...structuredClone(seedState.reminderRuntime),
+        ...(parsed.reminderRuntime || {})
+      }
+    };
   } catch {
     return structuredClone(seedState);
   }
 }
 
 function saveState() {
+  state.profile.lastSavedAt = new Date().toISOString();
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 }
 
@@ -264,6 +297,7 @@ function render() {
   renderControls();
   renderMetrics();
   renderFocusRecommendation();
+  renderMobileReadiness();
   renderCalendar();
   renderTasks();
   renderDetail();
@@ -346,6 +380,45 @@ function renderFocusRecommendation() {
   els.focusRecommendation.textContent = dueToday.length
     ? `${dueToday.length} task${dueToday.length === 1 ? "" : "s"} due today.`
     : "No urgent work is due today. Plan the next important task.";
+}
+
+function renderMobileReadiness() {
+  if (!els.profileName) return;
+
+  const notificationPermission = getNotificationPermission();
+  const nextTask = getNextReminderTask();
+  const lastBackup = state.profile.lastBackupAt ? formatDateTime(state.profile.lastBackupAt) : "Not exported";
+  const lastSaved = state.profile.lastSavedAt ? formatDateTime(state.profile.lastSavedAt) : "Local changes saved";
+
+  els.profileName.textContent = state.profile.name || "Local Profile";
+  els.profileMeta.textContent = state.profile.email || `Device ${state.profile.deviceId}`;
+  els.notificationStatus.textContent = notificationPermission === "granted" ? "Enabled" : "Not enabled";
+  els.nextReminder.textContent = nextTask
+    ? `${nextTask.title} - ${formatDate(nextTask.dueDate, nextTask.dueTime)}`
+    : "No upcoming reminders";
+  els.backupStatus.textContent = lastBackup;
+  els.syncStatus.textContent = state.profile.lastImportedAt
+    ? `Imported ${formatDateTime(state.profile.lastImportedAt)}`
+    : `Saved ${lastSaved}`;
+
+  if (els.enableNotificationsButton) {
+    els.enableNotificationsButton.textContent =
+      notificationPermission === "granted" ? "Reminders Enabled" : "Enable Reminders";
+  }
+}
+
+function getNotificationPermission() {
+  if (!("Notification" in window)) return "unsupported";
+  return Notification.permission;
+}
+
+function formatDateTime(value) {
+  return new Intl.DateTimeFormat(undefined, {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit"
+  }).format(new Date(value));
 }
 
 function renderCalendar() {
@@ -736,6 +809,141 @@ function simulateReminder() {
   render();
 }
 
+function getNextReminderTask() {
+  const now = new Date();
+  return state.tasks
+    .filter((task) => !["Completed", "Canceled"].includes(task.status) && task.dueDate)
+    .map((task) => ({ task, due: new Date(`${task.dueDate}T${task.dueTime || "09:00"}`) }))
+    .filter((item) => item.due >= now)
+    .sort((a, b) => a.due - b.due)[0]?.task;
+}
+
+function getReminderId(task) {
+  return `${task.id}:${task.dueDate}:${task.dueTime || "09:00"}`;
+}
+
+async function enableNotifications() {
+  if (!("Notification" in window)) {
+    showToast("This browser does not support task notifications.");
+    return;
+  }
+
+  const permission = Notification.permission === "default"
+    ? await Notification.requestPermission()
+    : Notification.permission;
+
+  state.reminderRuntime.enabled = permission === "granted";
+  state.reminderRuntime.lastCheckedAt = new Date().toISOString();
+  showToast(permission === "granted" ? "Task reminders enabled." : "Notifications were not enabled.");
+  render();
+  checkDueReminders();
+}
+
+async function sendTaskNotification(task) {
+  const options = {
+    body: `${task.owner} - ${formatDate(task.dueDate, task.dueTime)}`,
+    icon: "./icons/icon.svg",
+    badge: "./icons/icon.svg",
+    tag: getReminderId(task),
+    data: { taskId: task.id }
+  };
+
+  if ("serviceWorker" in navigator) {
+    const registration = await navigator.serviceWorker.ready.catch(() => null);
+    if (registration?.showNotification) {
+      await registration.showNotification(`Task due: ${task.title}`, options);
+      return;
+    }
+  }
+
+  new Notification(`Task due: ${task.title}`, options);
+}
+
+function checkDueReminders() {
+  if (!state.reminderRuntime.enabled || getNotificationPermission() !== "granted") return;
+
+  const now = new Date();
+  const delivered = new Set(state.reminderRuntime.deliveredReminderIds || []);
+  const dueTasks = state.tasks.filter((task) => {
+    if (!task.dueDate || ["Completed", "Canceled"].includes(task.status)) return false;
+    const due = new Date(`${task.dueDate}T${task.dueTime || "09:00"}`);
+    return due <= now && !delivered.has(getReminderId(task));
+  });
+
+  dueTasks.forEach((task) => {
+    const reminderId = getReminderId(task);
+    delivered.add(reminderId);
+    task.events.unshift(event("Delivered", "Local app notification delivered"));
+    sendTaskNotification(task).catch(() => {
+      task.events.unshift(event("Failed", "Local notification could not be delivered"));
+    });
+  });
+
+  state.reminderRuntime.deliveredReminderIds = [...delivered].slice(-200);
+  state.reminderRuntime.lastCheckedAt = new Date().toISOString();
+  if (dueTasks.length) render();
+}
+
+function exportBackup() {
+  const exportedAt = new Date().toISOString();
+  const payload = {
+    app: "TasksReminders",
+    version: 2,
+    exportedAt,
+    state: {
+      ...state,
+      lastDeletedTask: null,
+      profile: {
+        ...state.profile,
+        lastBackupAt: exportedAt
+      }
+    }
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = `TasksReminders-backup-${toISODate(new Date())}.json`;
+  document.body.append(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(link.href);
+
+  state.profile.lastBackupAt = exportedAt;
+  showToast("Backup exported.");
+  render();
+}
+
+function importBackup(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.addEventListener("load", () => {
+    try {
+      const parsed = JSON.parse(String(reader.result || ""));
+      const imported = parsed.state || parsed;
+      if (!Array.isArray(imported.tasks)) throw new Error("Missing tasks");
+      state = {
+        ...structuredClone(seedState),
+        ...imported,
+        profile: {
+          ...structuredClone(seedState.profile),
+          ...(imported.profile || {}),
+          lastImportedAt: new Date().toISOString()
+        },
+        reminderRuntime: {
+          ...structuredClone(seedState.reminderRuntime),
+          ...(imported.reminderRuntime || {})
+        }
+      };
+      state.selectedTaskId = state.tasks[0]?.id || "";
+      showToast("Backup imported.");
+      render();
+    } catch {
+      showToast("Backup file could not be imported.");
+    }
+  });
+  reader.readAsText(file);
+}
+
 document.querySelectorAll(".nav-item").forEach((button) => {
   button.addEventListener("click", () => {
     state.activeView = button.dataset.view;
@@ -791,6 +999,19 @@ els.jumpDate.addEventListener("change", () => {
 
 if (els.installButton) {
   els.installButton.addEventListener("click", installApp);
+}
+if (els.enableNotificationsButton) {
+  els.enableNotificationsButton.addEventListener("click", enableNotifications);
+}
+if (els.exportDataButton) {
+  els.exportDataButton.addEventListener("click", exportBackup);
+}
+if (els.importDataButton && els.importDataInput) {
+  els.importDataButton.addEventListener("click", () => els.importDataInput.click());
+  els.importDataInput.addEventListener("change", () => {
+    importBackup(els.importDataInput.files?.[0]);
+    els.importDataInput.value = "";
+  });
 }
 
 els.quickAddForm.addEventListener("submit", (event) => {
@@ -872,3 +1093,5 @@ function parseDateOnly(value) {
 }
 
 render();
+checkDueReminders();
+setInterval(checkDueReminders, 60000);

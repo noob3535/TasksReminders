@@ -135,6 +135,30 @@
           <button class="secondary-button" id="planTodayButton" type="button">Plan Today</button>
         </section>
 
+        <section class="mobile-readiness" aria-label="Mobile readiness">
+          <article>
+            <p class="eyebrow">Account</p>
+            <h2 id="profileName">Local Profile</h2>
+            <p id="profileMeta">Saved on this device</p>
+          </article>
+          <article>
+            <p class="eyebrow">Reminders</p>
+            <h2 id="notificationStatus">Not enabled</h2>
+            <p id="nextReminder">No upcoming reminders</p>
+          </article>
+          <article>
+            <p class="eyebrow">Backup</p>
+            <h2 id="backupStatus">Not exported</h2>
+            <p id="syncStatus">Local changes saved</p>
+          </article>
+          <div class="readiness-actions">
+            <button class="secondary-button" id="enableNotificationsButton" type="button">Enable Reminders</button>
+            <button class="secondary-button" id="exportDataButton" type="button">Export Backup</button>
+            <button class="secondary-button" id="importDataButton" type="button">Import Backup</button>
+            <input class="hidden" id="importDataInput" type="file" accept="application/json" />
+          </div>
+        </section>
+
         <div class="content-layout">
           <section class="task-region" aria-labelledby="taskListTitle">
             <div class="section-heading">

@@ -10,6 +10,9 @@ A dependency-free responsive web app built from the Word specification in `Task 
 - Search, status filter, and sort controls for faster task review.
 - Smart planning recommendation banner.
 - Undo support after deleting a task.
+- Browser reminder permission and due-task notification checks while the app is open or installed.
+- JSON backup export and import for moving or restoring task data.
+- Local profile and device status for mobile readiness.
 - Mobile-installable Progressive Web App metadata.
 - Offline app shell caching through a service worker.
 - Task views for Home, Today, Upcoming, Overdue, Calendar, Projects, Notifications, Reports, and Settings.
@@ -18,6 +21,10 @@ A dependency-free responsive web app built from the Word specification in `Task 
 - One-click acknowledge, snooze, and complete actions.
 - Basic accountability metrics: open tasks, due today, overdue tasks, and acknowledgment rate.
 - Local persistence through `localStorage`.
+
+## Mobile reality check
+
+GitHub Pages can host this app as a PWA, but it cannot run a database, user accounts, or true background push notifications by itself. The app now supports local browser notifications and backup import/export. A future cloud version should add a hosted backend, user login, database sync, and Web Push subscription storage.
 
 ## Run
 

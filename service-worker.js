@@ -1,4 +1,4 @@
-const CACHE_NAME = "taskpulse-cache-v3";
+const CACHE_NAME = "taskpulse-cache-v4";
 const BASE_PATH = "/TasksReminders/";
 const APP_SHELL = [
   BASE_PATH,
