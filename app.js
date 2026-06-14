@@ -185,6 +185,7 @@ const els = {
   backupStatus: document.querySelector("#backupStatus"),
   syncStatus: document.querySelector("#syncStatus"),
   enableNotificationsButton: document.querySelector("#enableNotificationsButton"),
+  refreshAppButton: document.querySelector("#refreshAppButton"),
   exportDataButton: document.querySelector("#exportDataButton"),
   importDataButton: document.querySelector("#importDataButton"),
   importDataInput: document.querySelector("#importDataInput"),
@@ -887,6 +888,28 @@ async function enableNotifications() {
   checkDueReminders();
 }
 
+async function refreshInstalledApp() {
+  showToast("Refreshing app files...");
+
+  if ("serviceWorker" in navigator) {
+    const registrations = await navigator.serviceWorker.getRegistrations();
+    await Promise.all(
+      registrations.map(async (registration) => {
+        registration.waiting?.postMessage({ type: "SKIP_WAITING" });
+        registration.active?.postMessage({ type: "CLEAR_CACHE" });
+        await registration.update().catch(() => {});
+      })
+    );
+  }
+
+  if ("caches" in window) {
+    const keys = await caches.keys();
+    await Promise.all(keys.map((key) => caches.delete(key)));
+  }
+
+  window.location.reload();
+}
+
 async function sendTaskNotification(task) {
   const options = {
     body: `${task.owner} - ${formatDate(task.dueDate, task.dueTime)}`,
@@ -1100,6 +1123,9 @@ if (els.installButton) {
 }
 if (els.enableNotificationsButton) {
   els.enableNotificationsButton.addEventListener("click", enableNotifications);
+}
+if (els.refreshAppButton) {
+  els.refreshAppButton.addEventListener("click", refreshInstalledApp);
 }
 if (els.exportDataButton) {
   els.exportDataButton.addEventListener("click", exportBackup);
