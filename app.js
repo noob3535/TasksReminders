@@ -1,7 +1,12 @@
 const STORAGE_KEY = "taskpulse-state-v1";
 
 const today = new Date();
-const toISODate = (date) => date.toISOString().slice(0, 10);
+const toISODate = (date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
 const addDays = (days) => {
   const date = new Date(today);
   date.setDate(date.getDate() + days);
@@ -12,6 +17,12 @@ const seedState = {
   activeView: "home",
   activeFilter: "all",
   selectedTaskId: "task-1",
+  selectedCalendarDate: toISODate(today),
+  calendarMonth: toISODate(new Date(today.getFullYear(), today.getMonth(), 1)),
+  searchQuery: "",
+  statusFilter: "all",
+  sortMode: "smart",
+  lastDeletedTask: null,
   users: ["Maya Chen", "Alonso Ruiz", "Fernando Silva", "Jordan Lee"],
   projects: ["Operations", "Finance", "Client Success", "Compliance"],
   notificationPrefs: {
@@ -132,7 +143,24 @@ const els = {
   metricToday: document.querySelector("#metricToday"),
   metricOverdue: document.querySelector("#metricOverdue"),
   metricAck: document.querySelector("#metricAck"),
-  installButton: document.querySelector("#installButton")
+  installButton: document.querySelector("#installButton"),
+  calendarPanel: document.querySelector("#calendarPanel"),
+  calendarGrid: document.querySelector("#calendarGrid"),
+  calendarMonthLabel: document.querySelector("#calendarMonthLabel"),
+  previousMonthButton: document.querySelector("#previousMonthButton"),
+  nextMonthButton: document.querySelector("#nextMonthButton"),
+  deleteTaskButton: document.querySelector("#deleteTaskButton"),
+  taskSearch: document.querySelector("#taskSearch"),
+  statusFilter: document.querySelector("#statusFilter"),
+  sortMode: document.querySelector("#sortMode"),
+  jumpDate: document.querySelector("#jumpDate"),
+  addForDateButton: document.querySelector("#addForDateButton"),
+  selectedDateLabel: document.querySelector("#selectedDateLabel"),
+  focusRecommendation: document.querySelector("#focusRecommendation"),
+  planTodayButton: document.querySelector("#planTodayButton"),
+  toast: document.querySelector("#toast"),
+  toastMessage: document.querySelector("#toastMessage"),
+  toastUndoButton: document.querySelector("#toastUndoButton")
 };
 
 let deferredInstallPrompt = null;
@@ -203,7 +231,7 @@ function tasksForView() {
   if (view === "today" || view === "home") tasks = tasks.filter((task) => isToday(task) || isOverdue(task));
   if (view === "upcoming") tasks = tasks.filter((task) => task.dueDate && task.dueDate > toISODate(today));
   if (view === "overdue") tasks = tasks.filter(isOverdue);
-  if (view === "calendar") tasks = tasks.filter((task) => task.dueDate);
+  if (view === "calendar") tasks = tasks.filter((task) => task.dueDate === state.selectedCalendarDate);
   if (view === "projects") tasks = tasks.filter((task) => task.project);
   if (view === "notifications") tasks = tasks.filter((task) => task.events.length || !task.acknowledged);
   if (view === "reports") tasks = state.tasks;
@@ -212,16 +240,52 @@ function tasksForView() {
   if (state.activeFilter === "high") tasks = tasks.filter((task) => ["High", "Emergency"].includes(task.priority));
   if (state.activeFilter === "blocked") tasks = tasks.filter((task) => task.status === "Blocked");
   if (state.activeFilter === "unacknowledged") tasks = tasks.filter((task) => !task.acknowledged);
+  if (state.statusFilter && state.statusFilter !== "all") {
+    tasks = tasks.filter((task) => {
+      if (state.statusFilter === "Overdue") return isOverdue(task);
+      return task.status === state.statusFilter;
+    });
+  }
+  if (state.searchQuery) {
+    const query = state.searchQuery.toLowerCase();
+    tasks = tasks.filter((task) =>
+      [task.title, task.description, task.owner, task.project, task.priority, task.status, ...(task.tags || [])]
+        .join(" ")
+        .toLowerCase()
+        .includes(query)
+    );
+  }
 
-  return sortBySmartRank(tasks);
+  return sortTasks(tasks);
 }
 
 function render() {
   renderNav();
+  renderControls();
   renderMetrics();
+  renderFocusRecommendation();
+  renderCalendar();
   renderTasks();
   renderDetail();
   saveState();
+}
+
+function sortTasks(tasks) {
+  if (state.sortMode === "due") {
+    return [...tasks].sort((a, b) =>
+      `${a.dueDate || "9999-99-99"}${a.dueTime || "99:99"}`.localeCompare(
+        `${b.dueDate || "9999-99-99"}${b.dueTime || "99:99"}`
+      )
+    );
+  }
+  if (state.sortMode === "priority") {
+    const priorityWeight = { Emergency: 0, High: 1, Normal: 2, Low: 3 };
+    return [...tasks].sort((a, b) => (priorityWeight[a.priority] ?? 4) - (priorityWeight[b.priority] ?? 4));
+  }
+  if (state.sortMode === "owner") {
+    return [...tasks].sort((a, b) => a.owner.localeCompare(b.owner));
+  }
+  return sortBySmartRank(tasks);
 }
 
 function renderNav() {
@@ -237,7 +301,7 @@ function renderNav() {
     today: ["Today", "Due now", "Today"],
     upcoming: ["Upcoming", "Scheduled work", "Upcoming"],
     overdue: ["Overdue", "Needs attention", "Overdue"],
-    calendar: ["Calendar", "Time-blocked tasks", "Calendar"],
+    calendar: ["Calendar", "Tasks due on selected date", `Due ${formatDate(state.selectedCalendarDate)}`],
     projects: ["Projects", "Grouped by project", "Projects"],
     notifications: ["Notifications", "Delivery and response status", "Notification Log"],
     reports: ["Reports", "Performance indicators", "Reports"],
@@ -247,6 +311,84 @@ function renderNav() {
   els.viewTitle.textContent = viewTitle;
   els.viewContext.textContent = context;
   els.taskListTitle.textContent = listTitle;
+  els.calendarPanel.classList.toggle("hidden", state.activeView !== "calendar");
+}
+
+function renderControls() {
+  els.taskSearch.value = state.searchQuery || "";
+  els.statusFilter.value = state.statusFilter || "all";
+  els.sortMode.value = state.sortMode || "smart";
+  els.jumpDate.value = state.selectedCalendarDate || toISODate(today);
+  if (els.selectedDateLabel) {
+    els.selectedDateLabel.textContent = `Selected: ${formatDate(state.selectedCalendarDate)}`;
+  }
+}
+
+function renderFocusRecommendation() {
+  const openTasks = state.tasks.filter((task) => !["Completed", "Canceled"].includes(task.status));
+  const overdue = openTasks.filter(isOverdue);
+  const unacknowledged = openTasks.filter((task) => !task.acknowledged);
+  const blocked = openTasks.filter((task) => task.status === "Blocked");
+  const dueToday = openTasks.filter(isToday);
+
+  if (overdue.length) {
+    els.focusRecommendation.textContent = `${overdue.length} overdue task${overdue.length === 1 ? "" : "s"} need attention before new work.`;
+    return;
+  }
+  if (blocked.length) {
+    els.focusRecommendation.textContent = `${blocked.length} blocked task${blocked.length === 1 ? "" : "s"} may hold up the schedule.`;
+    return;
+  }
+  if (unacknowledged.length) {
+    els.focusRecommendation.textContent = `${unacknowledged.length} reminder${unacknowledged.length === 1 ? "" : "s"} still need acknowledgment.`;
+    return;
+  }
+  els.focusRecommendation.textContent = dueToday.length
+    ? `${dueToday.length} task${dueToday.length === 1 ? "" : "s"} due today.`
+    : "No urgent work is due today. Plan the next important task.";
+}
+
+function renderCalendar() {
+  if (!els.calendarGrid || state.activeView !== "calendar") return;
+
+  const monthDate = parseDateOnly(state.calendarMonth || state.selectedCalendarDate || toISODate(today));
+  const year = monthDate.getFullYear();
+  const month = monthDate.getMonth();
+  const firstDay = new Date(year, month, 1);
+  const startDate = new Date(firstDay);
+  startDate.setDate(firstDay.getDate() - firstDay.getDay());
+  const selected = state.selectedCalendarDate || toISODate(today);
+
+  els.calendarMonthLabel.textContent = new Intl.DateTimeFormat(undefined, {
+    month: "long",
+    year: "numeric"
+  }).format(firstDay);
+  els.calendarGrid.replaceChildren();
+
+  for (let index = 0; index < 42; index += 1) {
+    const date = new Date(startDate);
+    date.setDate(startDate.getDate() + index);
+    const dateKey = toISODate(date);
+    const dueTasks = state.tasks.filter((task) => task.dueDate === dateKey && task.status !== "Canceled");
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "calendar-day";
+    button.classList.toggle("outside-month", date.getMonth() !== month);
+    button.classList.toggle("selected", dateKey === selected);
+    button.classList.toggle("has-tasks", dueTasks.length > 0);
+    button.setAttribute("aria-label", `${formatDate(dateKey)}: ${dueTasks.length} tasks`);
+    button.innerHTML = `
+      <span>${date.getDate()}</span>
+      <strong>${dueTasks.length ? dueTasks.length : ""}</strong>
+    `;
+    button.addEventListener("click", () => {
+      state.selectedCalendarDate = dateKey;
+      state.calendarMonth = toISODate(new Date(date.getFullYear(), date.getMonth(), 1));
+      state.selectedTaskId = dueTasks[0]?.id || "";
+      render();
+    });
+    els.calendarGrid.append(button);
+  }
 }
 
 function renderMetrics() {
@@ -266,7 +408,10 @@ function renderTasks() {
   if (!tasks.length) {
     const empty = document.createElement("div");
     empty.className = "empty-list";
-    empty.textContent = "No tasks match this view.";
+    empty.innerHTML = `
+      <strong>No tasks match this view.</strong>
+      <span>Adjust filters or create a task for this date.</span>
+    `;
     els.taskList.append(empty);
     return;
   }
@@ -340,10 +485,20 @@ function renderDetail() {
         ${task.events.map(renderEvent).join("")}
       </div>
     </section>
-    <button class="secondary-button" id="editSelectedTask" type="button">Edit Task</button>
+    <div class="detail-actions">
+      <button class="secondary-button" id="ackSelectedTask" type="button">Acknowledge</button>
+      <button class="secondary-button" id="snoozeSelectedTask" type="button">Snooze</button>
+      <button class="primary-button" id="completeSelectedTask" type="button">Complete</button>
+      <button class="secondary-button" id="editSelectedTask" type="button">Edit Task</button>
+      <button class="danger-button" id="deleteSelectedTask" type="button">Delete Task</button>
+    </div>
   `;
 
+  document.querySelector("#ackSelectedTask").addEventListener("click", () => updateTaskAction(task.id, "ack"));
+  document.querySelector("#snoozeSelectedTask").addEventListener("click", () => updateTaskAction(task.id, "snooze"));
+  document.querySelector("#completeSelectedTask").addEventListener("click", () => updateTaskAction(task.id, "complete"));
   document.querySelector("#editSelectedTask").addEventListener("click", () => openTaskDialog(task));
+  document.querySelector("#deleteSelectedTask").addEventListener("click", () => deleteTask(task.id));
 }
 
 function detailField(label, value) {
@@ -386,6 +541,10 @@ function updateTaskAction(taskId, action) {
     task.status = "Completed";
     task.acknowledged = true;
     task.events.unshift(event("Action taken", "Task completed from the task list"));
+  }
+  if (action === "delete") {
+    deleteTask(taskId);
+    return;
   }
 
   state.selectedTaskId = taskId;
@@ -477,12 +636,13 @@ function openTaskDialog(task = null) {
   els.taskForm.owner.value = task?.owner || state.users[0];
   els.taskForm.project.value = task?.project || state.projects[0];
   els.taskForm.priority.value = task?.priority || "Normal";
-  els.taskForm.dueDate.value = task?.dueDate || "";
+  els.taskForm.dueDate.value = task?.dueDate || (state.activeView === "calendar" ? state.selectedCalendarDate : "");
   els.taskForm.dueTime.value = task?.dueTime || "";
   els.taskForm.status.value = task?.status === "Overdue" ? "Not started" : task?.status || "Not started";
   els.taskForm.reminder.value = task?.reminder || "Push 1 hour before, email at due time";
   els.taskForm.description.value = task?.description || "";
   els.taskForm.evidence.value = task?.evidence || "";
+  els.deleteTaskButton.classList.toggle("hidden", !task);
   els.taskDialog.showModal();
 }
 
@@ -518,6 +678,43 @@ function handleTaskFormSubmit(event) {
   }
 
   els.taskDialog.close();
+  render();
+}
+
+function deleteTask(taskId) {
+  const task = state.tasks.find((item) => item.id === taskId);
+  if (!task) return;
+
+  const index = state.tasks.findIndex((item) => item.id === taskId);
+  state.lastDeletedTask = { task, index };
+  state.tasks = state.tasks.filter((item) => item.id !== taskId);
+  if (state.selectedTaskId === taskId) {
+    const replacement = tasksForView()[0] || state.tasks[0];
+    state.selectedTaskId = replacement?.id || "";
+  }
+  if (els.taskDialog.open) {
+    els.taskDialog.close();
+  }
+  showToast(`Deleted "${task.title}"`);
+  render();
+}
+
+function showToast(message) {
+  els.toastMessage.textContent = message;
+  els.toast.classList.remove("hidden");
+}
+
+function hideToast() {
+  els.toast.classList.add("hidden");
+}
+
+function undoDelete() {
+  if (!state.lastDeletedTask) return;
+  const { task, index } = state.lastDeletedTask;
+  state.tasks.splice(Math.max(index, 0), 0, task);
+  state.selectedTaskId = task.id;
+  state.lastDeletedTask = null;
+  hideToast();
   render();
 }
 
@@ -557,6 +754,40 @@ document.querySelector("#quickAddButton").addEventListener("click", () => openTa
 document.querySelector("#closeDialogButton").addEventListener("click", () => els.taskDialog.close());
 document.querySelector("#cancelDialogButton").addEventListener("click", () => els.taskDialog.close());
 document.querySelector("#simulateReminderButton").addEventListener("click", simulateReminder);
+document.querySelector("#previousMonthButton").addEventListener("click", () => changeCalendarMonth(-1));
+document.querySelector("#nextMonthButton").addEventListener("click", () => changeCalendarMonth(1));
+document.querySelector("#deleteTaskButton").addEventListener("click", () => {
+  const editingId = els.taskForm.dataset.editingId;
+  if (editingId) deleteTask(editingId);
+});
+document.querySelector("#addForDateButton").addEventListener("click", () => openTaskDialog());
+document.querySelector("#planTodayButton").addEventListener("click", () => {
+  state.activeView = "today";
+  render();
+});
+document.querySelector("#toastUndoButton").addEventListener("click", undoDelete);
+els.taskSearch.addEventListener("input", () => {
+  state.searchQuery = els.taskSearch.value.trim();
+  render();
+});
+els.statusFilter.addEventListener("change", () => {
+  state.statusFilter = els.statusFilter.value;
+  render();
+});
+els.sortMode.addEventListener("change", () => {
+  state.sortMode = els.sortMode.value;
+  render();
+});
+els.jumpDate.addEventListener("change", () => {
+  if (!els.jumpDate.value) return;
+  state.selectedCalendarDate = els.jumpDate.value;
+  const date = parseDateOnly(els.jumpDate.value);
+  state.calendarMonth = toISODate(new Date(date.getFullYear(), date.getMonth(), 1));
+  state.activeView = "calendar";
+  const dueTasks = state.tasks.filter((task) => task.dueDate === state.selectedCalendarDate);
+  state.selectedTaskId = dueTasks[0]?.id || "";
+  render();
+});
 
 if (els.installButton) {
   els.installButton.addEventListener("click", installApp);
@@ -626,6 +857,18 @@ if (params.get("view")) {
 }
 if (params.get("action") === "new-task") {
   window.addEventListener("load", () => openTaskDialog());
+}
+
+function changeCalendarMonth(offset) {
+  const current = parseDateOnly(state.calendarMonth || state.selectedCalendarDate || toISODate(today));
+  current.setMonth(current.getMonth() + offset);
+  state.calendarMonth = toISODate(new Date(current.getFullYear(), current.getMonth(), 1));
+  render();
+}
+
+function parseDateOnly(value) {
+  const [year, month, day] = value.split("-").map(Number);
+  return new Date(year, month - 1, day || 1);
 }
 
 render();

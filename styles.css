@@ -173,7 +173,8 @@ h2 {
 .secondary-button,
 .icon-button,
 .chip,
-.task-actions button {
+.task-actions button,
+.danger-button {
   border-radius: var(--radius);
   border: 1px solid var(--line);
   min-height: 40px;
@@ -203,9 +204,17 @@ h2 {
 .secondary-button,
 .icon-button,
 .chip,
-.task-actions button {
+.task-actions button,
+.danger-button {
   background: #ffffff;
   color: var(--ink);
+}
+
+.danger-button {
+  border-color: #f1b8ae;
+  color: #9c3325;
+  padding: 0 14px;
+  font-weight: 750;
 }
 
 .icon-button {
@@ -259,6 +268,24 @@ textarea {
   margin-bottom: 18px;
 }
 
+.focus-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  background: #fff8ec;
+  border: 1px solid #f3dfb8;
+  border-radius: var(--radius);
+  margin-bottom: 18px;
+  padding: 16px;
+}
+
+.focus-strip p:not(.eyebrow) {
+  color: #69522a;
+  line-height: 1.45;
+  margin-top: 4px;
+}
+
 .metric-tile {
   background: var(--panel);
   border: 1px solid var(--line);
@@ -299,6 +326,17 @@ textarea {
   flex-wrap: wrap;
 }
 
+.tool-row {
+  display: grid;
+  grid-template-columns: minmax(220px, 1.5fr) minmax(150px, 0.8fr) minmax(130px, 0.7fr) minmax(140px, 0.7fr);
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.tool-row label {
+  font-size: 1rem;
+}
+
 .chip {
   padding: 0 12px;
   color: var(--muted);
@@ -314,6 +352,93 @@ textarea {
   display: grid;
   gap: 10px;
   margin-top: 12px;
+}
+
+.calendar-panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  margin-top: 12px;
+  padding: 14px;
+}
+
+.calendar-toolbar,
+.calendar-weekdays,
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.calendar-toolbar {
+  align-items: center;
+  grid-template-columns: 42px 1fr 42px;
+  margin-bottom: 12px;
+}
+
+.calendar-toolbar h3 {
+  margin: 0;
+  text-align: center;
+  font-size: 1rem;
+}
+
+.calendar-action-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 12px;
+  padding: 10px 0;
+}
+
+.calendar-action-row strong {
+  color: var(--teal-dark);
+}
+
+.calendar-weekdays {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.calendar-day {
+  display: grid;
+  align-content: space-between;
+  justify-items: start;
+  min-height: 72px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #ffffff;
+  color: var(--ink);
+  padding: 8px;
+  text-align: left;
+}
+
+.calendar-day:hover,
+.calendar-day.selected {
+  border-color: var(--teal);
+  box-shadow: 0 0 0 3px #d6efeb;
+}
+
+.calendar-day.outside-month {
+  color: #9aa49d;
+  background: #f7f9f6;
+}
+
+.calendar-day.has-tasks strong {
+  display: inline-grid;
+  place-items: center;
+  min-width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  background: var(--teal);
+  color: #ffffff;
+  font-size: 0.78rem;
 }
 
 .task-card {
@@ -412,6 +537,12 @@ textarea {
 .task-actions {
   display: flex;
   gap: 6px;
+}
+
+.detail-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
 }
 
 .task-actions button {
@@ -544,6 +675,32 @@ label {
   background: rgba(255, 255, 255, 0.64);
 }
 
+.empty-list strong,
+.empty-list span {
+  display: block;
+}
+
+.empty-list strong {
+  color: var(--ink);
+  margin-bottom: 6px;
+}
+
+.toast {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: min(440px, calc(100vw - 36px));
+  background: #22342d;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  color: #ffffff;
+  padding: 12px;
+}
+
 @media (max-width: 1020px) {
   .app-shell {
     grid-template-columns: 1fr;
@@ -591,7 +748,10 @@ label {
 
   .topbar,
   .quick-capture,
-  .section-heading {
+  .section-heading,
+  .focus-strip,
+  .calendar-action-row,
+  .dialog-actions {
     align-items: stretch;
     flex-direction: column;
   }
@@ -615,8 +775,11 @@ label {
 
   .capture-form,
   .metrics-grid,
+  .tool-row,
   .form-grid,
-  .detail-grid {
+  .detail-grid,
+  .detail-actions,
+  .dialog-actions {
     grid-template-columns: 1fr;
   }
 
@@ -636,5 +799,26 @@ label {
 
   .task-title {
     white-space: normal;
+  }
+
+  .calendar-toolbar,
+  .calendar-weekdays,
+  .calendar-grid {
+    gap: 5px;
+  }
+
+  .calendar-day {
+    min-height: 54px;
+    padding: 6px;
+  }
+
+  .calendar-weekdays {
+    font-size: 0.68rem;
+  }
+
+  .toast {
+    left: 18px;
+    right: 18px;
+    justify-content: space-between;
   }
 }

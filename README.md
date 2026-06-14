@@ -5,6 +5,11 @@ A dependency-free responsive web app built from the Word specification in `Task 
 ## What is included
 
 - Quick task capture with simple natural-language parsing.
+- Add, edit, and delete tasks.
+- Calendar view for selecting a date and reviewing tasks due on that date.
+- Search, status filter, and sort controls for faster task review.
+- Smart planning recommendation banner.
+- Undo support after deleting a task.
 - Mobile-installable Progressive Web App metadata.
 - Offline app shell caching through a service worker.
 - Task views for Home, Today, Upcoming, Overdue, Calendar, Projects, Notifications, Reports, and Settings.
@@ -32,6 +37,12 @@ Run the app from the local server, then install it from your mobile browser:
 - iPhone Safari: open the app URL, tap Share, then choose `Add to Home Screen`.
 
 For install prompts and offline caching, use `http://localhost:4173` while testing on this computer. For installation on a real phone, deploy the folder to an HTTPS host, then open that HTTPS URL on the phone. Browsers generally do not allow service-worker installation from an insecure LAN URL.
+
+GitHub Pages URL:
+
+```text
+https://noob3535.github.io/TasksReminders/
+```
 
 ## Notes
 

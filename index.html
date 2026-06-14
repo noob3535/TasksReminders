@@ -126,6 +126,15 @@
           </article>
         </section>
 
+        <section class="focus-strip" aria-label="Today recommendations">
+          <div>
+            <p class="eyebrow">Smart planning</p>
+            <h2 id="focusTitle">Your next best action</h2>
+            <p id="focusRecommendation">Review overdue and high-priority tasks first.</p>
+          </div>
+          <button class="secondary-button" id="planTodayButton" type="button">Plan Today</button>
+        </section>
+
         <div class="content-layout">
           <section class="task-region" aria-labelledby="taskListTitle">
             <div class="section-heading">
@@ -139,6 +148,58 @@
                 <button class="chip" data-filter="blocked" type="button">Blocked</button>
                 <button class="chip" data-filter="unacknowledged" type="button">Unack</button>
               </div>
+            </div>
+            <div class="tool-row" aria-label="Task search and sorting">
+              <label>
+                <span class="sr-only">Search tasks</span>
+                <input id="taskSearch" type="search" placeholder="Search tasks, owners, projects..." />
+              </label>
+              <label>
+                <span class="sr-only">Status filter</span>
+                <select id="statusFilter">
+                  <option value="all">All statuses</option>
+                  <option>Not started</option>
+                  <option>In progress</option>
+                  <option>Waiting</option>
+                  <option>Blocked</option>
+                  <option>Completed</option>
+                  <option>Overdue</option>
+                </select>
+              </label>
+              <label>
+                <span class="sr-only">Sort tasks</span>
+                <select id="sortMode">
+                  <option value="smart">Smart sort</option>
+                  <option value="due">Due date</option>
+                  <option value="priority">Priority</option>
+                  <option value="owner">Owner</option>
+                </select>
+              </label>
+              <label>
+                <span class="sr-only">Jump to date</span>
+                <input id="jumpDate" type="date" />
+              </label>
+            </div>
+            <div class="calendar-panel hidden" id="calendarPanel" aria-label="Task calendar">
+              <div class="calendar-toolbar">
+                <button class="icon-button" id="previousMonthButton" type="button" title="Previous month">&lt;</button>
+                <h3 id="calendarMonthLabel">Calendar</h3>
+                <button class="icon-button" id="nextMonthButton" type="button" title="Next month">&gt;</button>
+              </div>
+              <div class="calendar-action-row">
+                <strong id="selectedDateLabel">Selected date</strong>
+                <button class="secondary-button" id="addForDateButton" type="button">Add Task For Date</button>
+              </div>
+              <div class="calendar-weekdays" aria-hidden="true">
+                <span>Sun</span>
+                <span>Mon</span>
+                <span>Tue</span>
+                <span>Wed</span>
+                <span>Thu</span>
+                <span>Fri</span>
+                <span>Sat</span>
+              </div>
+              <div class="calendar-grid" id="calendarGrid"></div>
             </div>
             <div class="task-list" id="taskList"></div>
           </section>
@@ -226,6 +287,7 @@
         </div>
 
         <div class="dialog-actions">
+          <button class="danger-button hidden" value="delete" type="button" id="deleteTaskButton">Delete Task</button>
           <button class="secondary-button" value="cancel" type="button" id="cancelDialogButton">Cancel</button>
           <button class="primary-button" value="default" type="submit">Save Task</button>
         </div>
@@ -246,9 +308,15 @@
           <button type="button" data-action="ack">Ack</button>
           <button type="button" data-action="snooze">Snooze</button>
           <button type="button" data-action="complete">Done</button>
+          <button type="button" data-action="delete">Delete</button>
         </div>
       </article>
     </template>
+
+    <div class="toast hidden" id="toast" role="status" aria-live="polite">
+      <span id="toastMessage"></span>
+      <button class="secondary-button" id="toastUndoButton" type="button">Undo</button>
+    </div>
 
     <script src="./app.js" defer></script>
   </body>
