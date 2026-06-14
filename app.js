@@ -38,7 +38,7 @@ const seedState = {
   },
   preferences: {
     themeMode: "system",
-    colorScheme: "maroon"
+    colorScheme: "navy-teal"
   },
   users: ["Maya Chen", "Alonso Ruiz", "Fernando Silva", "Jordan Lee"],
   projects: ["Operations", "Finance", "Client Success", "Compliance"],
@@ -454,7 +454,7 @@ function applyTheme() {
 
   document.body.dataset.theme = resolvedMode;
   document.body.dataset.themePreference = mode;
-  document.body.dataset.scheme = state.preferences.colorScheme || "maroon";
+  document.body.dataset.scheme = state.preferences.colorScheme || "navy-teal";
 }
 
 function getNotificationPermission() {

@@ -1,48 +1,48 @@
 :root {
   color-scheme: light;
-  --bg: #fff8d8;
+  --bg: #f7f8fa;
   --panel: #ffffff;
-  --panel-soft: #fff1ba;
-  --ink: #261510;
-  --muted: #7b6355;
-  --line: #ead9a8;
-  --maroon: #7a1f2b;
-  --maroon-dark: #54131d;
-  --brown: #6d4426;
-  --brown-dark: #422713;
-  --yellow: #fff0a8;
-  --yellow-strong: #f3c85d;
-  --alert-soft: #fae3dc;
-  --blocked-soft: #f6e8c8;
-  --ack-soft: #edf2c9;
-  --coral: #a7372d;
-  --amber: #9a6722;
-  --green: #5b7a32;
-  --shadow: 0 18px 50px rgba(84, 19, 29, 0.14);
+  --panel-soft: #eef5f7;
+  --surface-elevated: #ffffff;
+  --ink: #17212b;
+  --muted: #65717d;
+  --line: #d9e0e5;
+  --teal: #1f4e5f;
+  --teal-dark: #173b46;
+  --yellow: #fff3c4;
+  --yellow-strong: #f4c95d;
+  --info: #3478c7;
+  --alert-soft: #f9dce1;
+  --blocked-soft: #fff0da;
+  --ack-soft: #dff2e7;
+  --coral: #c63d4f;
+  --amber: #d98c10;
+  --green: #2e8b57;
+  --shadow: 0 18px 45px rgba(23, 33, 43, 0.08);
   --radius: 8px;
 }
 
 body[data-theme="dark"] {
   color-scheme: dark;
-  --bg: #1d100b;
-  --panel: #2a1710;
-  --panel-soft: #3b2117;
-  --ink: #fff2b8;
-  --muted: #d8bd86;
-  --line: #6b4128;
-  --maroon: #6f1421;
-  --maroon-dark: #3f0811;
-  --brown: #9b6738;
-  --brown-dark: #5d351d;
-  --yellow: #f8e7a1;
-  --yellow-strong: #d9aa3a;
-  --alert-soft: #4a1714;
-  --blocked-soft: #4f3516;
-  --ack-soft: #2d3d1d;
-  --coral: #d15648;
-  --amber: #d19a3a;
-  --green: #93aa52;
-  --shadow: 0 18px 50px rgba(0, 0, 0, 0.34);
+  --bg: #101719;
+  --panel: #182225;
+  --panel-soft: #202d31;
+  --surface-elevated: #202d31;
+  --ink: #f5f7f7;
+  --muted: #aab7ba;
+  --line: #344448;
+  --teal: #1f4e5f;
+  --teal-dark: #0d3038;
+  --yellow: #3d341b;
+  --yellow-strong: #f4c95d;
+  --info: #3478c7;
+  --alert-soft: #3a2025;
+  --blocked-soft: #3c2e19;
+  --ack-soft: #183026;
+  --coral: #c63d4f;
+  --amber: #d98c10;
+  --green: #2e8b57;
+  --shadow: 0 18px 45px rgba(0, 0, 0, 0.28);
 }
 
 * {
@@ -87,8 +87,8 @@ button {
 }
 
 .sidebar {
-  background: var(--maroon-dark);
-  color: var(--yellow);
+  background: var(--teal);
+  color: #ffffff;
   padding: 24px 18px;
   display: flex;
   flex-direction: column;
@@ -110,7 +110,7 @@ button {
   height: 42px;
   border-radius: var(--radius);
   background: var(--yellow-strong);
-  color: var(--maroon-dark);
+  color: var(--teal-dark);
   font-weight: 800;
 }
 
@@ -137,15 +137,15 @@ button {
   border: 0;
   border-radius: var(--radius);
   background: transparent;
-  color: var(--yellow);
+  color: #eef7f8;
   padding: 10px 12px;
   text-align: left;
 }
 
 .nav-item:hover,
 .nav-item.active {
-  background: color-mix(in srgb, var(--yellow) 16%, transparent);
-  color: var(--yellow);
+  background: color-mix(in srgb, #ffffff 14%, transparent);
+  color: #ffffff;
 }
 
 .main-panel {
@@ -220,15 +220,15 @@ h2 {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  border-color: var(--maroon);
-  background: var(--maroon);
-  color: var(--yellow);
+  border-color: var(--teal);
+  background: var(--teal);
+  color: #ffffff;
   padding: 0 16px;
   font-weight: 750;
 }
 
 .primary-button:hover {
-  background: var(--maroon-dark);
+  background: var(--teal-dark);
 }
 
 .secondary-button,
@@ -311,7 +311,7 @@ textarea {
 }
 
 .focus-strip p:not(.eyebrow) {
-  color: var(--brown);
+  color: var(--ink);
   line-height: 1.45;
   margin-top: 4px;
 }
@@ -399,16 +399,20 @@ textarea {
   border-radius: var(--radius);
 }
 
-.swatch.maroon {
-  background: var(--maroon);
+.swatch.teal {
+  background: var(--teal);
 }
 
-.swatch.brown {
-  background: var(--brown);
+.swatch.navy {
+  background: var(--teal-dark);
 }
 
 .swatch.yellow {
   background: var(--yellow-strong);
+}
+
+.swatch.green {
+  background: var(--green);
 }
 
 .readiness-actions {
@@ -475,9 +479,9 @@ textarea {
 }
 
 .chip.active {
-  border-color: var(--maroon);
+  border-color: var(--teal);
   background: var(--yellow);
-  color: var(--maroon-dark);
+  color: var(--teal-dark);
 }
 
 .task-list {
@@ -527,7 +531,7 @@ textarea {
 }
 
 .calendar-action-row strong {
-  color: var(--maroon-dark);
+  color: var(--teal);
 }
 
 .calendar-weekdays {
@@ -553,8 +557,8 @@ textarea {
 
 .calendar-day:hover,
 .calendar-day.selected {
-  border-color: var(--maroon);
-  box-shadow: 0 0 0 3px rgba(122, 31, 43, 0.16);
+  border-color: var(--teal);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--teal) 18%, transparent);
 }
 
 .calendar-day.outside-month {
@@ -568,8 +572,8 @@ textarea {
   min-width: 24px;
   height: 24px;
   border-radius: 999px;
-  background: var(--maroon);
-  color: var(--yellow);
+  background: var(--teal);
+  color: #ffffff;
   font-size: 0.78rem;
 }
 
@@ -585,8 +589,8 @@ textarea {
 }
 
 .task-card.selected {
-  border-color: var(--maroon);
-  box-shadow: 0 0 0 3px rgba(122, 31, 43, 0.16);
+  border-color: var(--teal);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--teal) 18%, transparent);
 }
 
 .task-main {
@@ -643,7 +647,7 @@ textarea {
   min-height: 26px;
   border-radius: 999px;
   background: var(--panel-soft);
-  color: var(--brown);
+  color: var(--ink);
   padding: 0 10px;
   font-size: 0.78rem;
   font-weight: 700;
@@ -789,7 +793,7 @@ dialog::backdrop {
 label {
   display: grid;
   gap: 6px;
-  color: var(--brown);
+  color: var(--ink);
   font-weight: 700;
   font-size: 0.9rem;
 }
@@ -826,10 +830,10 @@ label {
   align-items: center;
   gap: 12px;
   max-width: min(440px, calc(100vw - 36px));
-  background: var(--maroon-dark);
+  background: var(--teal-dark);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
-  color: var(--yellow);
+  color: #ffffff;
   padding: 12px;
 }
 

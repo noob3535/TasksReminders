@@ -14,7 +14,7 @@ A dependency-free responsive web app built from the Word specification in `Task 
 - JSON backup export and import for moving or restoring task data.
 - Local profile and device status for mobile readiness.
 - Settings panel for profile, reminder defaults, and light/dark/system theme mode.
-- Maroon, brown, and light-yellow visual theme.
+- Professional navy-teal and warm-yellow visual theme.
 - Refresh App control for clearing old PWA caches after GitHub Pages updates.
 - Mobile-installable Progressive Web App metadata.
 - Offline app shell caching through a service worker.
