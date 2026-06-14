@@ -7,8 +7,8 @@
   "scope": "/TasksReminders/",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "background_color": "#f7f8f5",
-  "theme_color": "#22342d",
+  "background_color": "#fff8d8",
+  "theme_color": "#54131d",
   "categories": ["productivity", "business"],
   "icons": [
     {

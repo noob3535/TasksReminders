@@ -13,6 +13,8 @@ A dependency-free responsive web app built from the Word specification in `Task 
 - Browser reminder permission and due-task notification checks while the app is open or installed.
 - JSON backup export and import for moving or restoring task data.
 - Local profile and device status for mobile readiness.
+- Settings panel for profile, reminder defaults, and light/dark/system theme mode.
+- Maroon, brown, and light-yellow visual theme.
 - Mobile-installable Progressive Web App metadata.
 - Offline app shell caching through a service worker.
 - Task views for Home, Today, Upcoming, Overdue, Calendar, Projects, Notifications, Reports, and Settings.

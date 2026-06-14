@@ -7,7 +7,7 @@
       name="description"
       content="Accountability-focused task tracker with reminders, notification tracking, escalation, and reporting."
     />
-    <meta name="theme-color" content="#22342d" />
+    <meta name="theme-color" content="#54131d" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="TaskPulse" />
@@ -156,6 +156,91 @@
             <button class="secondary-button" id="exportDataButton" type="button">Export Backup</button>
             <button class="secondary-button" id="importDataButton" type="button">Import Backup</button>
             <input class="hidden" id="importDataInput" type="file" accept="application/json" />
+          </div>
+        </section>
+
+        <section class="settings-panel hidden" id="settingsPanel" aria-label="Application settings">
+          <div class="settings-card">
+            <div>
+              <p class="eyebrow">Profile</p>
+              <h2>Device profile</h2>
+            </div>
+            <form class="settings-form" id="profileSettingsForm">
+              <label>
+                Display name
+                <input id="profileNameInput" name="profileName" autocomplete="name" />
+              </label>
+              <label>
+                Email
+                <input id="profileEmailInput" name="profileEmail" autocomplete="email" type="email" />
+              </label>
+              <button class="primary-button" type="submit">Save Profile</button>
+            </form>
+          </div>
+
+          <div class="settings-card">
+            <div>
+              <p class="eyebrow">Appearance</p>
+              <h2>Theme</h2>
+            </div>
+            <div class="theme-controls" role="group" aria-label="Theme mode">
+              <label>
+                <input id="themeSystem" name="themeMode" type="radio" value="system" />
+                System
+              </label>
+              <label>
+                <input id="themeLight" name="themeMode" type="radio" value="light" />
+                Light
+              </label>
+              <label>
+                <input id="themeDark" name="themeMode" type="radio" value="dark" />
+                Dark
+              </label>
+            </div>
+            <div class="swatch-row" aria-label="Color palette">
+              <span class="swatch maroon" title="Maroon"></span>
+              <span class="swatch brown" title="Brown"></span>
+              <span class="swatch yellow" title="Light yellow"></span>
+            </div>
+          </div>
+
+          <div class="settings-card">
+            <div>
+              <p class="eyebrow">Reminder Defaults</p>
+              <h2>Notification rules</h2>
+            </div>
+            <form class="settings-form" id="reminderSettingsForm">
+              <label>
+                High priority
+                <select id="prefHigh" name="high">
+                  <option>Push and email</option>
+                  <option>Push only</option>
+                  <option>Repeated until acknowledged</option>
+                  <option>Repeated until completed</option>
+                </select>
+              </label>
+              <label>
+                Normal priority
+                <select id="prefNormal" name="normal">
+                  <option>Push only</option>
+                  <option>Push and email</option>
+                  <option>Daily digest</option>
+                </select>
+              </label>
+              <label>
+                Low priority
+                <select id="prefLow" name="low">
+                  <option>Daily digest</option>
+                  <option>Push only</option>
+                  <option>No reminder</option>
+                </select>
+              </label>
+              <label>
+                Quiet hours
+                <input id="prefQuietHours" name="quietHours" />
+              </label>
+              <button class="primary-button" type="submit">Save Rules</button>
+            </form>
           </div>
         </section>
 

@@ -36,6 +36,10 @@ const seedState = {
     lastCheckedAt: "",
     deliveredReminderIds: []
   },
+  preferences: {
+    themeMode: "system",
+    colorScheme: "maroon"
+  },
   users: ["Maya Chen", "Alonso Ruiz", "Fernando Silva", "Jordan Lee"],
   projects: ["Operations", "Finance", "Client Success", "Compliance"],
   notificationPrefs: {
@@ -183,7 +187,16 @@ const els = {
   enableNotificationsButton: document.querySelector("#enableNotificationsButton"),
   exportDataButton: document.querySelector("#exportDataButton"),
   importDataButton: document.querySelector("#importDataButton"),
-  importDataInput: document.querySelector("#importDataInput")
+  importDataInput: document.querySelector("#importDataInput"),
+  settingsPanel: document.querySelector("#settingsPanel"),
+  profileSettingsForm: document.querySelector("#profileSettingsForm"),
+  profileNameInput: document.querySelector("#profileNameInput"),
+  profileEmailInput: document.querySelector("#profileEmailInput"),
+  reminderSettingsForm: document.querySelector("#reminderSettingsForm"),
+  prefHigh: document.querySelector("#prefHigh"),
+  prefNormal: document.querySelector("#prefNormal"),
+  prefLow: document.querySelector("#prefLow"),
+  prefQuietHours: document.querySelector("#prefQuietHours")
 };
 
 let deferredInstallPrompt = null;
@@ -209,6 +222,11 @@ function loadState() {
       reminderRuntime: {
         ...structuredClone(seedState.reminderRuntime),
         ...(parsed.reminderRuntime || {})
+      },
+      preferences: { ...structuredClone(seedState.preferences), ...(parsed.preferences || {}) },
+      notificationPrefs: {
+        ...structuredClone(seedState.notificationPrefs),
+        ...(parsed.notificationPrefs || {})
       }
     };
   } catch {
@@ -293,11 +311,13 @@ function tasksForView() {
 }
 
 function render() {
+  applyTheme();
   renderNav();
   renderControls();
   renderMetrics();
   renderFocusRecommendation();
   renderMobileReadiness();
+  renderSettings();
   renderCalendar();
   renderTasks();
   renderDetail();
@@ -346,6 +366,9 @@ function renderNav() {
   els.viewContext.textContent = context;
   els.taskListTitle.textContent = listTitle;
   els.calendarPanel.classList.toggle("hidden", state.activeView !== "calendar");
+  if (els.settingsPanel) {
+    els.settingsPanel.classList.toggle("hidden", state.activeView !== "settings");
+  }
 }
 
 function renderControls() {
@@ -405,6 +428,32 @@ function renderMobileReadiness() {
     els.enableNotificationsButton.textContent =
       notificationPermission === "granted" ? "Reminders Enabled" : "Enable Reminders";
   }
+}
+
+function renderSettings() {
+  if (!els.settingsPanel) return;
+
+  els.profileNameInput.value = state.profile.name || "";
+  els.profileEmailInput.value = state.profile.email || "";
+  els.prefHigh.value = state.notificationPrefs.high || "Push and email";
+  els.prefNormal.value = state.notificationPrefs.normal || "Push only";
+  els.prefLow.value = state.notificationPrefs.low || "Daily digest";
+  els.prefQuietHours.value = state.notificationPrefs.quietHours || "";
+
+  document.querySelectorAll("[name='themeMode']").forEach((input) => {
+    input.checked = input.value === (state.preferences.themeMode || "system");
+  });
+}
+
+function applyTheme() {
+  const mode = state.preferences.themeMode || "system";
+  const resolvedMode = mode === "system"
+    ? (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
+    : mode;
+
+  document.body.dataset.theme = resolvedMode;
+  document.body.dataset.themePreference = mode;
+  document.body.dataset.scheme = state.preferences.colorScheme || "maroon";
 }
 
 function getNotificationPermission() {
@@ -559,19 +608,18 @@ function renderDetail() {
       </div>
     </section>
     <div class="detail-actions">
-      <button class="secondary-button" id="ackSelectedTask" type="button">Acknowledge</button>
-      <button class="secondary-button" id="snoozeSelectedTask" type="button">Snooze</button>
-      <button class="primary-button" id="completeSelectedTask" type="button">Complete</button>
-      <button class="secondary-button" id="editSelectedTask" type="button">Edit Task</button>
-      <button class="danger-button" id="deleteSelectedTask" type="button">Delete Task</button>
+      <button class="secondary-button" id="ackSelectedTask" data-detail-action="ack" type="button">Acknowledge</button>
+      <button class="secondary-button" id="snoozeSelectedTask" data-detail-action="snooze" type="button">Snooze</button>
+      <button class="primary-button" id="completeSelectedTask" data-detail-action="complete" type="button">Complete</button>
+      <button class="secondary-button" id="editSelectedTask" data-detail-action="edit" type="button">Edit Task</button>
+      <button class="danger-button" id="deleteSelectedTask" data-detail-action="delete" type="button">Delete Task</button>
     </div>
   `;
 
-  document.querySelector("#ackSelectedTask").addEventListener("click", () => updateTaskAction(task.id, "ack"));
-  document.querySelector("#snoozeSelectedTask").addEventListener("click", () => updateTaskAction(task.id, "snooze"));
-  document.querySelector("#completeSelectedTask").addEventListener("click", () => updateTaskAction(task.id, "complete"));
-  document.querySelector("#editSelectedTask").addEventListener("click", () => openTaskDialog(task));
-  document.querySelector("#deleteSelectedTask").addEventListener("click", () => deleteTask(task.id));
+  els.taskDetail.querySelector("#deleteSelectedTask").addEventListener("click", (event) => {
+    event.stopPropagation();
+    deleteTask(task.id);
+  });
 }
 
 function detailField(label, value) {
@@ -768,8 +816,8 @@ function deleteTask(taskId) {
   if (els.taskDialog.open) {
     els.taskDialog.close();
   }
-  showToast(`Deleted "${task.title}"`);
   render();
+  showToast(`Deleted "${task.title}"`);
 }
 
 function showToast(message) {
@@ -932,6 +980,14 @@ function importBackup(file) {
         reminderRuntime: {
           ...structuredClone(seedState.reminderRuntime),
           ...(imported.reminderRuntime || {})
+        },
+        preferences: {
+          ...structuredClone(seedState.preferences),
+          ...(imported.preferences || {})
+        },
+        notificationPrefs: {
+          ...structuredClone(seedState.notificationPrefs),
+          ...(imported.notificationPrefs || {})
         }
       };
       state.selectedTaskId = state.tasks[0]?.id || "";
@@ -942,6 +998,31 @@ function importBackup(file) {
     }
   });
   reader.readAsText(file);
+}
+
+function saveProfileSettings(event) {
+  event.preventDefault();
+  state.profile.name = els.profileNameInput.value.trim() || "Local Profile";
+  state.profile.email = els.profileEmailInput.value.trim();
+  showToast("Profile settings saved.");
+  render();
+}
+
+function saveReminderSettings(event) {
+  event.preventDefault();
+  state.notificationPrefs.high = els.prefHigh.value;
+  state.notificationPrefs.normal = els.prefNormal.value;
+  state.notificationPrefs.low = els.prefLow.value;
+  state.notificationPrefs.quietHours = els.prefQuietHours.value.trim();
+  state.notificationPrefs.timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || "Local";
+  showToast("Reminder rules saved.");
+  render();
+}
+
+function updateThemeMode(mode) {
+  state.preferences.themeMode = mode;
+  showToast(`Theme set to ${mode}.`);
+  render();
 }
 
 document.querySelectorAll(".nav-item").forEach((button) => {
@@ -956,6 +1037,23 @@ document.querySelectorAll(".chip").forEach((button) => {
     state.activeFilter = button.dataset.filter;
     render();
   });
+});
+
+els.taskDetail.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-detail-action]");
+  if (!button) return;
+  const task = state.tasks.find((item) => item.id === state.selectedTaskId);
+  if (!task) return;
+
+  if (button.dataset.detailAction === "edit") {
+    openTaskDialog(task);
+    return;
+  }
+  if (button.dataset.detailAction === "delete") {
+    deleteTask(task.id);
+    return;
+  }
+  updateTaskAction(task.id, button.dataset.detailAction);
 });
 
 document.querySelector("#quickAddButton").addEventListener("click", () => openTaskDialog());
@@ -1013,6 +1111,18 @@ if (els.importDataButton && els.importDataInput) {
     els.importDataInput.value = "";
   });
 }
+if (els.profileSettingsForm) {
+  els.profileSettingsForm.addEventListener("submit", saveProfileSettings);
+}
+if (els.reminderSettingsForm) {
+  els.reminderSettingsForm.addEventListener("submit", saveReminderSettings);
+}
+document.querySelectorAll("[name='themeMode']").forEach((input) => {
+  input.addEventListener("change", () => updateThemeMode(input.value));
+});
+window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
+  if ((state.preferences.themeMode || "system") === "system") render();
+});
 
 els.quickAddForm.addEventListener("submit", (event) => {
   event.preventDefault();
